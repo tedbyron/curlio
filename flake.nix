@@ -52,44 +52,38 @@
             name = "curlio";
             dontUnpack = true;
 
-            buildInputs = with pkgs; [
+            buildInputs = if web then with pkgs; [
               python311Packages.brotli
               python311Packages.fonttools
-            ];
+            ] else with pkgs; [ nerd-font-patcher ];
 
             buildPhase = if web then ''
-              mkdir -p ttf woff2
+              install -Dt . ${font}/share/fonts/truetype/*.ttf
 
-              for ttf in ${font}/share/fonts/truetype/*.ttf; do
-                cp $ttf .
-                name="$(basename $ttf)"
+              for ttf in ttf; do
                 pyftsubset $ttf \
-                  --output-file="$name".woff2 \
+                  --output-file="$(basename $ttf .ttf)".woff2 \
                   --flavor=woff2 \
                   --layout-features=* \
                   --desubroutinize \
                   --unicodes="U+0000-0170,U+00D7,U+00F7,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-21BB,U+2212,U+2215,U+F8FF,U+FEFF,U+FFFD,U+00E8"
-                cp $ttf ttf
-                mv "$name".woff2 woff2
               done
             '' else ''
-              mkdir -p ttf
-              cp ${font}/share/fonts/truetype/*.ttf ttf
+              for ttf in ${font}/share/fonts/truetype/*.ttf; do
+                 nerd-font-patcher -s -l -c --careful --makegroup -1 -out ttf $ttf
+              done
             '';
 
             installPhase = ''
-              mkdir -p $out
-              cp -r ttf $out
+              find . -name '*.ttf' -exec install -Dt $out/share/fonts/truetype {} \;
             '' + lib.optionalString web ''
-              cp -r woff2 $out
+              find . -name '*.woff2' -exec install -Dt $out/share/fonts/woff2 {} \;
             '';
           };
       in
       {
         devShells.default = pkgs.mkShellNoCC {
-          buildInputs = with pkgs; [
-            python3
-          ];
+          packages = with pkgs; [ python3 ];
         };
 
         packages = rec {
