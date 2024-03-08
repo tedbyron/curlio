@@ -2,6 +2,8 @@
 
 Iosevka extended ss20 variant + nerd font glyphs
 
+![sample text](../screenshots/sample.png)
+
 ## Packages
 
 | Package                | Description  | Width     | Nerd Font Glyphs |
