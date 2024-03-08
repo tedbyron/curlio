@@ -58,11 +58,12 @@
             ] else with pkgs; [ nerd-font-patcher ];
 
             buildPhase = if web then ''
-              install -Dt . ${font}/share/fonts/truetype/*.ttf
+              install -Dt ttf ${font}/share/fonts/truetype/*.ttf
+              mkdir -p woff2
 
               for ttf in ttf; do
                 pyftsubset $ttf \
-                  --output-file="$(basename $ttf .ttf)".woff2 \
+                  --output-file=woff2/"$(basename $ttf .ttf)".woff2 \
                   --flavor=woff2 \
                   --layout-features=* \
                   --desubroutinize \
@@ -75,9 +76,9 @@
             '';
 
             installPhase = ''
-              find . -name '*.ttf' -exec install -Dt $out/share/fonts/truetype {} \;
+              install -Dt $out/share/fonts/truetype ttf/*.ttf
             '' + lib.optionalString web ''
-              find . -name '*.woff2' -exec install -Dt $out/share/fonts/woff2 {} \;
+              install -Dt $out/share/fonts/woff2 woff2/*.woff2
             '';
           };
       in
