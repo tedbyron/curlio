@@ -52,28 +52,32 @@
             name = "curlio";
             dontUnpack = true;
 
-            buildInputs = if web then with pkgs; [
-              python311Packages.brotli
-              python311Packages.fonttools
-            ] else with pkgs; [ nerd-font-patcher ];
+            buildInputs =
+              if web then with pkgs; [
+                python311Packages.brotli
+                python311Packages.fonttools
+              ] else with pkgs; [
+                nerd-font-patcher
+              ];
 
-            buildPhase = if web then ''
-              install -Dt ttf ${font}/share/fonts/truetype/*.ttf
-              mkdir -p woff2
+            buildPhase =
+              if web then ''
+                install -Dt ttf ${font}/share/fonts/truetype/*.ttf
+                mkdir -p woff2
 
-              for ttf in ttf; do
-                pyftsubset $ttf \
-                  --output-file=woff2/"$(basename $ttf .ttf)".woff2 \
-                  --flavor=woff2 \
-                  --layout-features=* \
-                  --desubroutinize \
-                  --unicodes="U+0000-0170,U+00D7,U+00F7,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-21BB,U+2212,U+2215,U+F8FF,U+FEFF,U+FFFD,U+00E8"
-              done
-            '' else ''
-              for ttf in ${font}/share/fonts/truetype/*.ttf; do
-                 nerd-font-patcher -s -l -c --careful --makegroup -1 -out ttf $ttf
-              done
-            '';
+                for ttf in ttf; do
+                  pyftsubset $ttf \
+                    --output-file=woff2/"$(basename $ttf .ttf)".woff2 \
+                    --flavor=woff2 \
+                    --layout-features=* \
+                    --desubroutinize \
+                    --unicodes="U+0000-0170,U+00D7,U+00F7,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-21BB,U+2212,U+2215,U+F8FF,U+FEFF,U+FFFD,U+00E8"
+                done
+              '' else ''
+                for ttf in ${font}/share/fonts/truetype/*.ttf; do
+                   nerd-font-patcher -s -l -c --careful --makegroup -1 -out ttf $ttf
+                done
+              '';
 
             installPhase = ''
               install -Dt $out/share/fonts/truetype ttf/*.ttf
@@ -83,6 +87,8 @@
           };
       in
       {
+        formatter = pkgs.nixpkgs-fmt;
+
         devShells.default = pkgs.mkShellNoCC {
           packages = with pkgs; [ python3 ];
         };
