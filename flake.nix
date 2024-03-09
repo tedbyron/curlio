@@ -52,7 +52,7 @@
             name = "curlio";
             dontUnpack = true;
 
-            buildInputs =
+            nativeBuildInputs =
               if web then with pkgs; [
                 python311Packages.brotli
                 python311Packages.fonttools
@@ -60,30 +60,29 @@
                 nerd-font-patcher
               ];
 
-            buildPhase =
-              if web then ''
-                install -Dt ttf ${font}/share/fonts/truetype/*.ttf
-                mkdir -p woff2
-
-                for ttf in ttf; do
+            buildPhase = ''
+                src=(${font}/share/fonts/truetype/*.ttf)
+              '' + (if web then ''
+                for ttf in "''${src[@]}"; do
                   pyftsubset $ttf \
-                    --output-file=woff2/"$(basename $ttf .ttf)".woff2 \
+                    --output-file="$(basename $ttf .ttf)".woff2 \
                     --flavor=woff2 \
                     --layout-features=* \
                     --desubroutinize \
                     --unicodes="U+0000-0170,U+00D7,U+00F7,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-21BB,U+2212,U+2215,U+F8FF,U+FEFF,U+FFFD,U+00E8"
                 done
               '' else ''
-                for ttf in ${font}/share/fonts/truetype/*.ttf; do
-                   nerd-font-patcher -s -l -c --careful --makegroup -1 -out ttf $ttf
+                for ttf in "''${src[@]}"; do
+                    nerd-font-patcher -s -l -c --careful --makegroup -1 $ttf
                 done
-              '';
+              '');
 
-            installPhase = ''
-              install -Dt $out/share/fonts/truetype ttf/*.ttf
-            '' + lib.optionalString web ''
-              install -Dt $out/share/fonts/woff2 woff2/*.woff2
-            '';
+            installPhase = if web then ''
+                install -Dt $out/share/fonts/truetype "''${src[@]}"
+                install -Dt $out/share/fonts/woff2 *.woff2
+              '' else ''
+                install -Dt $out/share/fonts/truetype *.ttf
+              '';
           };
       in
       {
