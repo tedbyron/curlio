@@ -3,14 +3,12 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-utils.url = "flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        inherit (pkgs) lib;
-
         pkgs = import nixpkgs { inherit system; };
         buildPlans = (fromTOML (builtins.readFile ./private-build-plans.toml)).buildPlans;
 
@@ -60,10 +58,9 @@
                 nerd-font-patcher
               ];
 
-            buildPhase = ''
-                src=(${font}/share/fonts/truetype/*.ttf)
-              '' + (if web then ''
-                for ttf in "''${src[@]}"; do
+            buildPhase =
+              if web then ''
+                for ttf in ${font}/share/fonts/truetype/*.ttf; do
                   pyftsubset $ttf \
                     --output-file="$(basename $ttf .ttf)".woff2 \
                     --flavor=woff2 \
@@ -72,13 +69,14 @@
                     --unicodes="U+0000-0170,U+00D7,U+00F7,U+2000-206F,U+2074,U+20AC,U+2122,U+2190-21BB,U+2212,U+2215,U+F8FF,U+FEFF,U+FFFD,U+00E8"
                 done
               '' else ''
-                for ttf in "''${src[@]}"; do
+                for ttf in ${font}/share/fonts/truetype/*.ttf; do
                     nerd-font-patcher -s -l -c --careful --makegroup -1 $ttf
                 done
-              '');
+              '';
 
-            installPhase = if web then ''
-                install -Dt $out/share/fonts/truetype "''${src[@]}"
+            installPhase =
+              if web then ''
+                install -Dt $out/share/fonts/truetype ${font}/share/fonts/truetype/*.ttf
                 install -Dt $out/share/fonts/woff2 *.woff2
               '' else ''
                 install -Dt $out/share/fonts/truetype *.ttf
