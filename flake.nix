@@ -70,7 +70,7 @@
                 done
               '' else ''
                 for ttf in ${font}/share/fonts/truetype/*.ttf; do
-                    nerd-font-patcher -s -l -c --careful --makegroup -1 $ttf
+                  nerd-font-patcher -s -l -c --careful --makegroup -1 $ttf
                 done
               '';
 
