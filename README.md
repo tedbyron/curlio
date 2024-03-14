@@ -1,3 +1,5 @@
+Moved to [tedbyron/dotfiles](https://github.com/tedbyron/dotfiles)
+
 # curlio
 
 Iosevka extended ss20 variant + nerd font glyphs
